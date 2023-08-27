@@ -5,7 +5,7 @@ class BlogsController < ApplicationController
 
   before_action :set_blog, only: %i[show edit update destroy]
 
-  before_action :check_if_correct_user, only: %i[edit update]
+  before_action :ensure_correct_user, only: %i[edit update destroy]
 
   def index
     @blogs = Blog.search(params[:term]).published.default_order
@@ -53,8 +53,8 @@ class BlogsController < ApplicationController
     params.require(:blog).permit(:title, :content, :secret, :random_eyecatch)
   end
 
-  def check_if_correct_user
-    @user = @blog.user
-    redirect_to @blog if current_user.id != @user.id
+  def ensure_correct_user
+    user = @blog.user
+    Blog.written_by(user.id).find_by!(user_id: current_user.id)
   end
 end
