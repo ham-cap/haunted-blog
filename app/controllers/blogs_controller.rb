@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'debug'
+
 class BlogsController < ApplicationController
   skip_before_action :authenticate_user!, only: %i[index show]
 
@@ -11,7 +13,10 @@ class BlogsController < ApplicationController
     @blogs = Blog.search(params[:term]).published.default_order
   end
 
-  def show; end
+  def show
+    raise ActiveRecord::RecordNotFound if @blog.secret && current_user.nil?
+    raise ActiveRecord::RecordNotFound if @blog.secret && @blog.user_id != current_user.id
+  end
 
   def new
     @blog = Blog.new
