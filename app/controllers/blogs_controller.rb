@@ -28,6 +28,7 @@ class BlogsController < ApplicationController
     @blog = current_user.blogs.new(blog_params)
 
     if @blog.save
+      ensure_premium
       redirect_to blog_url(@blog), notice: 'Blog was successfully created.'
     else
       render :new, status: :unprocessable_entity
@@ -36,6 +37,7 @@ class BlogsController < ApplicationController
 
   def update
     if @blog.update(blog_params)
+      ensure_premium
       redirect_to blog_url(@blog), notice: 'Blog was successfully updated.'
     else
       render :edit, status: :unprocessable_entity
@@ -61,5 +63,9 @@ class BlogsController < ApplicationController
   def ensure_correct_user
     user = @blog.user
     Blog.written_by(user.id).find_by!(user_id: current_user.id)
+  end
+
+  def ensure_premium
+    @blog.update(random_eyecatch: false) if @blog.random_eyecatch && current_user.premium == false
   end
 end
