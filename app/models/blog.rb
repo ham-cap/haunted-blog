@@ -15,8 +15,6 @@ class Blog < ApplicationRecord
 
   scope :default_order, -> { order(id: :desc) }
 
-  scope :written_by, ->(id) { where(user_id: id) }
-
   def owned_by?(target_user)
     user == target_user
   end

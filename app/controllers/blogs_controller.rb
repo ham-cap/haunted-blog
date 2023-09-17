@@ -60,7 +60,7 @@ class BlogsController < ApplicationController
 
   def ensure_correct_user
     user = @blog.user
-    Blog.written_by(user.id).find_by!(user_id: current_user.id)
+    current_user.blogs.find_by!(user_id: user.id)
   end
 
   def ensure_premium
