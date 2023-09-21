@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
+require 'debug'
+
 class BlogsController < ApplicationController
   skip_before_action :authenticate_user!, only: %i[index show]
 
-  before_action :set_blog, only: %i[show edit update destroy]
+  before_action :set_blog, only: %i[edit update destroy]
 
   before_action :ensure_correct_user, only: %i[edit update destroy]
 
@@ -12,8 +14,13 @@ class BlogsController < ApplicationController
   end
 
   def show
-    raise ActiveRecord::RecordNotFound if @blog.secret && current_user.nil?
-    raise ActiveRecord::RecordNotFound if @blog.secret && @blog.user_id != current_user.id
+    blogs = if current_user
+              Blog.where('secret = ? OR user_id = ?', false, current_user.id)
+            else
+              Blog.published
+            end
+
+    @blog = blogs.find(params[:id])
   end
 
   def new
@@ -26,7 +33,6 @@ class BlogsController < ApplicationController
     @blog = current_user.blogs.new(blog_params)
 
     if @blog.save
-      ensure_premium
       redirect_to blog_url(@blog), notice: 'Blog was successfully created.'
     else
       render :new, status: :unprocessable_entity
@@ -35,7 +41,6 @@ class BlogsController < ApplicationController
 
   def update
     if @blog.update(blog_params)
-      ensure_premium
       redirect_to blog_url(@blog), notice: 'Blog was successfully updated.'
     else
       render :edit, status: :unprocessable_entity
@@ -55,15 +60,11 @@ class BlogsController < ApplicationController
   end
 
   def blog_params
-    params.require(:blog).permit(:title, :content, :secret, :random_eyecatch)
+    params.require(:blog).permit(:title, :content, :secret, current_user.premium ? :random_eyecatch : nil)
   end
 
   def ensure_correct_user
     user = @blog.user
     current_user.blogs.find_by!(user_id: user.id)
-  end
-
-  def ensure_premium
-    @blog.update(random_eyecatch: false) if @blog.random_eyecatch && current_user.premium == false
   end
 end
