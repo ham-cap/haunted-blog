@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'debug'
-
 class BlogsController < ApplicationController
   skip_before_action :authenticate_user!, only: %i[index show]
 
