@@ -58,7 +58,8 @@ class BlogsController < ApplicationController
   end
 
   def blog_params
-    params.require(:blog).permit(:title, :content, :secret, current_user.premium ? :random_eyecatch : nil)
+    random_eyecatch = :random_eyecatch if current_user.premium
+    params.require(:blog).permit(:title, :content, :secret, random_eyecatch)
   end
 
   def ensure_correct_user
