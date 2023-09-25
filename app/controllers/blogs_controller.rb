@@ -5,8 +5,6 @@ class BlogsController < ApplicationController
 
   before_action :set_blog, only: %i[edit update destroy]
 
-  before_action :ensure_correct_user, only: %i[edit update destroy]
-
   def index
     @blogs = Blog.search(params[:term]).published.default_order
   end
@@ -50,16 +48,11 @@ class BlogsController < ApplicationController
   private
 
   def set_blog
-    @blog = Blog.find(params[:id])
+    @blog = current_user.blogs.find(params[:id])
   end
 
   def blog_params
     random_eyecatch = :random_eyecatch if current_user.premium
     params.require(:blog).permit(:title, :content, :secret, random_eyecatch)
-  end
-
-  def ensure_correct_user
-    user = @blog.user
-    current_user.blogs.find_by!(user_id: user.id)
   end
 end
