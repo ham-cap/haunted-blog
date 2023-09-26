@@ -10,9 +10,7 @@ class BlogsController < ApplicationController
   end
 
   def show
-    blogs = Blog.where('secret = ? OR user_id = ?', false, current_user&.id)
-
-    @blog = blogs.find(params[:id])
+    @blog = Blog.published.or(Blog.where('user_id = ?', current_user&.id)).find(params[:id])
   end
 
   def new
